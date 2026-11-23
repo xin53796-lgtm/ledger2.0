@@ -53,13 +53,13 @@ button.ghost{background:var(--pink2);color:var(--text)}
 .out{color:var(--out)}.in{color:var(--in)}
 .rec button{background:none;color:var(--sub);padding:4px 8px}
 .empty{color:var(--sub);text-align:center;padding:10px}
-.tools{display:flex;gap:8px;justify-content:center;margin-top:8px}details summary{cursor:pointer;color:var(--sub);font-weight:600;font-size:14px}details .b{margin-top:10px}details textarea{width:100%;height:110px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--text);padding:8px;font:12px/1.4 monospace;margin:8px 0}details p{font-size:12px;color:var(--sub);margin:6px 0}#bmsg{min-height:18px}
+.tools{display:flex;gap:8px;justify-content:center;margin-top:8px}.fund label{white-space:nowrap}.hasbg .card,.hasbg .fund{background:rgba(255,255,255,.5)}@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .hasbg .card,:root:not([data-theme="light"]) .hasbg .fund{background:rgba(52,38,45,.6)}}details summary{cursor:pointer;color:var(--sub);font-weight:600;font-size:14px}details .b{margin-top:10px}details textarea{width:100%;height:110px;border:1px solid var(--line);border-radius:10px;background:transparent;color:var(--text);padding:8px;font:12px/1.4 monospace;margin:8px 0}details p{font-size:12px;color:var(--sub);margin:6px 0}#bmsg{min-height:18px}
 </style>
 </head>
 <body>
 <div id="bg"></div>
 <main>
-<h1><img id="logo" alt="">我的小账本 🌸</h1>
+<h1><img id="logo" alt="">我的小账本 🌸<button class="ghost" id="bgTop" style="margin-left:auto;padding:6px 10px;font-size:12px">换背景</button></h1>
 
 <div class="funds" id="funds"></div>
 
@@ -164,15 +164,16 @@ const pig=`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 400'><g stro
 const defBg='url("data:image/svg+xml;utf8,'+encodeURIComponent(pig)+'")';
 function setBg(){let u=null;try{u=localStorage.getItem('ledgerBg')}catch(e){}
   $('bg').style.backgroundImage=u?'url('+u+')':defBg;
-  $('bg').style.backgroundSize=u?'cover':'min(520px,90vw)';
+  $('bg').style.backgroundSize=u?'contain':'min(520px,90vw)';$('bg').style.opacity=u?.9:.5;document.body.classList.toggle('hasbg',!!u);
   $('bg').style.backgroundRepeat='no-repeat';
   $('bg').style.backgroundPosition=u?'center':'center 85%'}
-$('bgBtn').onclick=()=>$('file').click();
+$('bgBtn').onclick=$('bgTop').onclick=()=>$('file').click();
 $('file').onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();
   img.onload=()=>{const k=Math.min(1,900/Math.max(img.width,img.height)),c=document.createElement('canvas');
     c.width=img.width*k;c.height=img.height*k;c.getContext('2d').drawImage(img,0,0,c.width,c.height);
     try{localStorage.setItem('ledgerBg',c.toDataURL('image/jpeg',.8))}catch(x){}setBg()};
-  img.src=URL.createObjectURL(f)};
+  img.onerror=()=>{try{alert('这张图片无法读取，请换一张 jpg 或 png 图片')}catch(x){}};
+  img.src=URL.createObjectURL(f);e.target.value=''};
 $('bgReset').onclick=()=>{try{localStorage.removeItem('ledgerBg')}catch(e){}setBg()};
 const msg=t=>$('bmsg').textContent=t;
 $('bExp').onclick=async()=>{const t=JSON.stringify({app:'ledger',v:1,time:new Date().toISOString(),init:S.init,recs:S.recs});$('bTxt').value=t;$('bTxt').select();let ok=false;try{await navigator.clipboard.writeText(t);ok=true}catch(e){try{ok=document.execCommand('copy')}catch(x){}}msg(ok?'已生成并复制，共 '+S.recs.length+' 条记录，请粘贴保存好。':'已生成，请长按文本框全选后复制保存。')};
